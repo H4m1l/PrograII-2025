@@ -2,6 +2,7 @@ package com.example.miprimeraaplicacion;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -78,12 +79,39 @@ public class lista_amigos extends Activity {
                 parametros.putString("amigos", jsonArray.getJSONObject(posicion).toString());
                 abriVentana();
             } else if (item.getItemId()==R.id.mnxEliminar) {
-                // Eliminar amigo
+                eliminarAmigo();
             }
             return true;
         }catch (Exception e){
             mostrarMsg("Error: " + e.getMessage());
             return super.onContextItemSelected(item);
+        }
+    }
+    private void eliminarAmigo(){
+        try{
+            String nombre = jsonArray.getJSONObject(posicion).getString("nombre");
+            AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
+            confirmacion.setTitle("Esta seguro de eliminar a: ");
+            confirmacion.setMessage(nombre);
+            confirmacion.setPositiveButton("Si", (dialog, which) -> {
+                try {
+                    String respuesta = db.administrar_amigos("eliminar", new String[]{jsonArray.getJSONObject(posicion).getString("idAmigo")});
+                    if(respuesta.equals("ok")) {
+                        obtenerDatosAmigos();
+                        mostrarMsg("Registro eliminado con exito");
+                    }else{
+                        mostrarMsg("Error: " + respuesta);
+                    }
+                }catch (Exception e){
+                    mostrarMsg("Error: " + e.getMessage());
+                }
+            });
+            confirmacion.setNegativeButton("No", (dialog, which) -> {
+                dialog.dismiss();
+            });
+            confirmacion.create().show();
+        }catch (Exception e){
+            mostrarMsg("Error: " + e.getMessage());
         }
     }
     private void abriVentana(){
@@ -168,6 +196,19 @@ public class lista_amigos extends Activity {
                             alAmigos.add(item);
                         }
                     }
+                    ltsAmigos.setAdapter(new AdaptadorAmigos(getApplicationContext(), alAmigos));
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+    private void mostrarMsg(String msg){
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+    }
+}          }
                     ltsAmigos.setAdapter(new AdaptadorAmigos(getApplicationContext(), alAmigos));
                 }
             }
